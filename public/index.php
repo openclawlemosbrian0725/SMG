@@ -32,6 +32,7 @@ route('GET', '/', function () {
 route('GET', '/login', 'AuthController::showLogin');
 route('POST', '/login', 'AuthController::doLogin');
 route('POST', '/logout', 'AuthController::logout');
+route('GET', '/logout', 'AuthController::logout');
 
 route('GET', '/owner', 'OwnerController::dashboard');
 route('POST', '/owner/action', 'OwnerController::action');
