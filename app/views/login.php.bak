@@ -1,0 +1,62 @@
+<?php
+?>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SMG</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/SMG/css/style.css?v=9">
+</head>
+<body>
+<?php
+// This template renders the login page. It uses the custom design from style.css
+// to match the look and feel of the original login.html prototype. To integrate
+// with your backend, ensure that form submissions are handled appropriately.
+// The variables $error, $email may be set by the controller to show form
+// feedback.
+?>
+<div class="login-container">
+    <!-- Left panel with branding and features -->
+    <div class="login-left">
+        <h1>SMG Portal</h1>
+        <p>Your properties, fully under control.</p>
+        <ul class="login-features">
+            <li>• Multi‑role access for owners, tenants and vendors</li>
+            <li>• Automated rent payments and payment history</li>
+            <li>• Streamlined maintenance requests workflow</li>
+            <li>• Detailed unit, tenant and vendor management</li>
+        </ul>
+        <div class="login-footer">
+            &copy; <?php echo date('Y'); ?> SMG. All rights reserved.
+        </div>
+    </div>
+    <!-- Right panel with login form -->
+    <div class="login-right">
+        <div class="login-card">
+            <h2>Sign in</h2>
+            <?php if (!empty($error)): ?>
+                <div style="color:#EF4444; margin-bottom:1rem; font-size:0.875rem;">
+                    <?php echo htmlspecialchars($error); ?>
+                </div>
+            <?php endif; ?>
+            <form method="POST" action="/SMG/login">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input class="form-input" type="email" id="email" name="email" placeholder="you@example.com" value="<?php echo isset($email) ? htmlspecialchars($email) : ''; ?>" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input class="form-input" type="password" id="password" name="password" placeholder="••••••" required>
+                </div>
+                <button class="btn btn-accent" type="submit">Sign in</button>
+            </form>
+            <div class="login-footer">
+                <a href="#">Forgot password?</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
