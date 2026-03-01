@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Vendor Portal — SMG</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* Base styles reused from tenant dashboard */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --sidebar-w:240px;--bg:#f7f7f8;--surface:#fff;
+  --sidebar-bg:#0f1117;--sidebar-hover:#1a1d27;
+  --accent:#10B981;--accent-dim:#d1fae5;--accent-dark:#059669;
+  --text:#111318;--text-muted:#6b7280;--text-faint:#9ca3af;
+  --border:#e5e7eb;--border-dark:#1f2230;
+  --red:#ef4444;--yellow:#f59e0b;--blue:#3b82f6;
+  --radius:10px;--shadow:0 1px 3px rgba(0,0,0,.07);--shadow-md:0 4px 16px rgba(0,0,0,.1);
+}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text)}
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);background:var(--sidebar-bg);display:flex;flex-direction:column;flex-shrink:0;z-index:100;transition:transform .25s ease}
+.sidebar-logo{padding:20px 20px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border-dark)}
+.logo-mark{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff}
+.logo-text{color:#fff;font-weight:600;font-size:15px}.logo-sub{color:#4b5563;font-size:11px}
+.sidebar-section{padding:12px 12px 4px}
+.sidebar-label{font-size:10px;font-weight:600;letter-spacing:.08em;color:#4b5563;text-transform:uppercase;padding:0 8px;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;color:#9ca3af;font-size:13.5px;font-weight:500;cursor:pointer;transition:all .15s;user-select:none}
+.nav-item:hover{background:var(--sidebar-hover);color:#e5e7eb}
+.nav-item.active{background:rgba(16,185,129,.12);color:var(--accent)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px}
+.nav-badge.warn{background:var(--yellow);color:#000}
+.sidebar-bottom{margin-top:auto;border-top:1px solid var(--border-dark);padding:12px;position:relative}
+.user-chip{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;cursor:pointer;transition:background .15s}
+.user-chip:hover{background:var(--sidebar-hover)}
+.avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#059669);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.user-name{color:#e5e7eb;font-size:13px;font-weight:500}.user-role{color:#6b7280;font-size:11px}
+.logout-popup{position:absolute;bottom:72px;left:12px;right:12px;background:#1a1d27;border:1px solid var(--border-dark);border-radius:8px;overflow:hidden;display:none;box-shadow:var(--shadow-md)}
+.logout-popup.open{display:block}
+.logout-item{padding:11px 14px;font-size:13px;color:#9ca3af;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .15s}
+.logout-item:hover{background:var(--sidebar-hover);color:#e5e7eb}
+.logout-item.danger{color:#f87171}.logout-item.danger:hover{color:var(--red)}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.topbar-title{font-size:15px;font-weight:600;flex:1}
+.topbar-actions{display:flex;align-items:center;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:inherit}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent-dark)}
+.btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--border)}.btn-ghost:hover{background:var(--bg)}
+
+.content{flex:1;overflow-y:auto;padding:24px}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.metric-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);cursor:pointer;transition:box-shadow .15s,transform .15s}
+.metric-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.metric-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.metric-label{font-size:12.5px;font-weight:500;color:var(--text-muted)}
+.metric-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.metric-icon.green{background:var(--accent-dim);color:var(--accent-dark)}
+.metric-icon.blue{background:#dbeafe;color:#2563eb}
+.metric-icon.yellow{background:#fef3c7;color:#d97706}
+.metric-icon.red{background:#fee2e2;color:#dc2626}
+.metric-value{font-size:26px;font-weight:700;letter-spacing:-.5px;line-height:1;margin-bottom:6px}
+.metric-change{font-size:12px;color:var(--text-faint)}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:16px}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:14px;font-weight:600}
+.card-action{font-size:12.5px;color:var(--accent);font-weight:500;cursor:pointer}
+.card-action:hover{color:var(--accent-dark)}
+
+/* GRID */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:10px 20px;font-size:11.5px;font-weight:600;letter-spacing:.04em;color:var(--text-muted);text-transform:uppercase;border-bottom:1px solid var(--border);background:#fafafa}
+td{padding:12px 20px;font-size:13.5px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafafa}
+
+/* Additional styles copied from owner/tenant dashboards to align look and feel */
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600}
+.badge::before{content:'';width:6px;height:6px;border-radius:50%}
+.badge-green{background:#d1fae5;color:#065f46}
+.badge-green::before{background:var(--accent)}
+.badge-yellow{background:#fef3c7;color:#92400e}
+.badge-yellow::before{background:var(--yellow)}
+.badge-red{background:#fee2e2;color:#991b1b}
+.badge-red::before{background:var(--red)}
+.badge-blue{background:#dbeafe;color:#1e40af}
+.badge-blue::before{background:var(--blue)}
+.badge-gray{background:#f3f4f6;color:#374151}
+.badge-gray::before{background:#9ca3af}
+
+/* Maintenance item styles */
+.maint-item{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px}
+.maint-item:last-child{border-bottom:none}
+.maint-num{width:28px;height:28px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--text-muted);flex-shrink:0;margin-top:2px}
+.maint-body{flex:1}
+.maint-title{font-size:13.5px;font-weight:500;margin-bottom:4px}
+.maint-meta{font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.maint-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+
+/* Form styles */
+.form-row{margin-bottom:16px}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+label{display:block;font-size:12.5px;font-weight:600;color:var(--text-muted);margin-bottom:6px;letter-spacing:.02em}
+input,select,textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:7px;font-size:13.5px;font-family:inherit;color:var(--text);background:var(--surface);transition:border-color .15s,box-shadow .15s;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(16,185,129,.1)}
+textarea{resize:vertical;min-height:80px}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
+.form-divider{font-size:12px;font-weight:600;color:var(--text-faint);text-transform:uppercase;letter-spacing:.06em;margin:20px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.form-hint{font-size:12px;color:var(--text-faint);margin-top:4px}
+
+/* Notification panel styles (hidden by default) */
+.notif-panel{position:absolute;top:56px;right:16px;width:340px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-md);z-index:200;display:none}
+.notif-panel.open{display:block}
+
+/* Page header */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.page-title{font-size:20px;font-weight:700}
+.page-sub{font-size:13px;color:var(--text-muted);margin-top:2px}
+
+/* Clickable link style for job numbers */
+.unit-link{color:var(--accent);font-weight:500;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">S</div>
+      <div><div class="logo-text">SMG</div><div class="logo-sub">Santiago Management</div></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Overview</div>
+      <div class="nav-item active" data-page="dashboard" onclick="nav('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Operations</div>
+      <div class="nav-item" data-page="jobs" onclick="nav('jobs')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>Jobs<span class="nav-badge warn">2</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Finance</div>
+      <div class="nav-item" data-page="payments" onclick="nav('payments')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Payments
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">System</div>
+      <div class="nav-item" data-page="profile" onclick="nav('profile')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/></svg>Profile Settings
+      </div>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="logout-popup" id="logout-popup">
+        <div class="logout-item" onclick="nav('profile')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/></svg>Profile Settings
+        </div>
+        <div class="logout-item danger">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign Out
+        </div>
+      </div>
+      <div class="user-chip" onclick="toggleLogout()">
+        <div class="avatar">M</div>
+        <div><div class="user-name">Mike's Plumbing</div><div class="user-role">Vendor</div></div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" style="margin-left:auto"><polyline points="18 15 12 9 6 15"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-actions">
+        <div class="icon-btn" id="notif-btn" onclick="toggleNotif()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span class="notif-dot" id="notif-dot" style="display:block"></span></div>
+      </div>
+    </div>
+    <!-- NOTIFICATION PANEL -->
+    <div class="notif-panel" id="notif-panel">
+      <div class="notif-header">
+        <span class="notif-title">Notifications</span>
+        <span class="notif-clear" onclick="clearNotifs()">Mark all read</span>
+      </div>
+      <!-- Vendor-specific notifications -->
+      <div class="notif-item notif-unread">
+        <div class="notif-icon" style="background:#d1fae5;color:#059669"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+        <div class="notif-body"><div class="notif-text">Payment of $750 processed to <strong>Mike's Plumbing</strong></div><div class="notif-time">Today, 10:20am</div></div>
+      </div>
+      <div class="notif-item">
+        <div class="notif-icon" style="background:#fef3c7;color:#d97706"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
+        <div class="notif-body"><div class="notif-text"><strong>New job assigned</strong> — Fix leaking faucet, Unit #1A</div><div class="notif-time">Yesterday</div></div>
+      </div>
+      <div class="notif-item">
+        <div class="notif-icon" style="background:#dbeafe;color:#2563eb"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div class="notif-body"><div class="notif-text">Upcoming appointment — Unit #1A on Mar 3 at 10am</div><div class="notif-time">2 days ago</div></div>
+      </div>
+    </div>
+
+    <div class="content" id="content">
+      <!-- DASHBOARD PAGE -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header"><div><div class="page-title">Dashboard</div><div class="page-sub">Overview of your jobs and payments</div></div></div>
+
+        <div class="metrics">
+          <div class="metric-card">
+            <div class="metric-header"><span class="metric-label">Open Jobs</span><div class="metric-icon yellow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg></div></div>
+            <div class="metric-value">2</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-header"><span class="metric-label">Upcoming</span><div class="metric-icon blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg></div></div>
+            <div class="metric-value">1</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-header"><span class="metric-label">Completed</span><div class="metric-icon green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+            <div class="metric-value">3</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-header"><span class="metric-label">Next Payment</span><div class="metric-icon red"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg></div></div>
+            <div class="metric-value">$1,250</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Assigned Jobs</span><span class="card-action" onclick="nav('jobs')">View all →</span></div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+              <div class="maint-item" style="cursor:pointer" onclick="openJobDetail('10')">
+                <div class="maint-num">#10</div>
+                <div class="maint-body">
+                  <div class="maint-title">Leaking faucet — kitchen</div>
+                  <div class="maint-meta">Unit #1A · Mar 3, 10am</div>
+                </div>
+              </div>
+              <div class="maint-item" style="cursor:pointer" onclick="openJobDetail('11')">
+                <div class="maint-num">#11</div>
+                <div class="maint-body">
+                  <div class="maint-title">Broken window latch</div>
+                  <div class="maint-meta">Unit #2A · Pending schedule</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Recent Payments</span><span class="card-action" onclick="nav('payments')">View all →</span></div>
+            <table>
+              <thead><tr><th>Job #</th><th>Date</th><th>Description</th><th>Amount</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td><span class="unit-link" onclick="openJobDetail('9')">#9</span></td><td>Feb 26, 2026</td><td>Maintenance payout</td><td>$750</td><td><span class="badge badge-green">Paid</span></td></tr>
+                <tr><td><span class="unit-link" onclick="openJobDetail('8')">#8</span></td><td>Jan 29, 2026</td><td>Maintenance payout</td><td>$600</td><td><span class="badge badge-green">Paid</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- JOBS PAGE -->
+      <div class="page" id="page-jobs">
+        <div class="page-header"><div><div class="page-title">Jobs</div><div class="page-sub">Your assigned maintenance requests</div></div></div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Open Jobs</span></div>
+          <div class="maint-item" style="cursor:pointer" onclick="openJobDetail('10')">
+            <div class="maint-num">#10</div>
+            <div class="maint-body">
+              <div class="maint-title">Leaking faucet — kitchen</div>
+              <div class="maint-meta">Unit #1A · Mar 3, 10am · <span class="badge badge-yellow" style="font-size:11px;padding:1px 7px;">Scheduled</span></div>
+            </div>
+            <div class="maint-actions"><span class="action-btn primary" onclick="openJobDetail('10')">View Job</span><span class="action-btn" onclick="openModal('update-status','10')">Update Status</span><span class="action-btn" onclick="openModal('request-reschedule','10')">Reschedule</span></div>
+          </div>
+          <div class="maint-item" style="cursor:pointer" onclick="openJobDetail('11')">
+            <div class="maint-num">#11</div>
+            <div class="maint-body">
+              <div class="maint-title">Broken window latch</div>
+              <div class="maint-meta">Unit #2A · Pending · <span class="badge badge-yellow" style="font-size:11px;padding:1px 7px;">Pending</span></div>
+            </div>
+            <div class="maint-actions"><span class="action-btn primary" onclick="openJobDetail('11')">View Job</span><span class="action-btn" onclick="openModal('accept-job','11')">Accept</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Completed Jobs</span></div>
+          <table>
+            <thead><tr><th>#</th><th>Issue</th><th>Date</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>#9</td><td>HVAC inspection</td><td>Feb 15, 2026</td><td><span class="badge badge-green">Completed</span></td></tr>
+              <tr><td>#8</td><td>Pipe repair</td><td>Jan 20, 2026</td><td><span class="badge badge-green">Completed</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PAYMENTS PAGE -->
+      <div class="page" id="page-payments">
+        <div class="page-header"><div><div class="page-title">Payments</div><div class="page-sub">Payment methods and history</div></div></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Payout Methods</span></div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+                <div style="display:flex;flex-direction:column;gap:2px">
+                  <div style="font-weight:650;color:var(--text)">Bank •••• 9876</div>
+                  <div style="font-size:12.5px;color:var(--muted)">ACH</div>
+                </div>
+                <button class="btn btn-ghost" onclick="openModal('manage-payout-method')">Manage</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Upcoming Payout</span></div>
+            <div style="padding:16px;font-size:13.5px;color:var(--text);line-height:1.6">
+              <div><strong>Amount:</strong> $1,250</div>
+              <div><strong>Scheduled On:</strong> Mar 5, 2026</div>
+              <div><strong>Status:</strong> Processing</div>
+            </div>
+            <div style="padding:0 16px 16px;display:flex;justify-content:flex-end">
+              <button class="btn btn-ghost">View Details</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Payment History</span><span class="card-action" onclick="exportPayments()">Export</span></div>
+          <table>
+            <thead><tr><th>Job #</th><th>Date</th><th>Description</th><th>Amount</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td><span class="unit-link" onclick="openJobDetail('9')">#9</span></td><td>Feb 26, 2026</td><td>Maintenance payout</td><td>$750</td><td><span class="badge badge-green">Paid</span></td></tr>
+              <tr><td><span class="unit-link" onclick="openJobDetail('8')">#8</span></td><td>Jan 29, 2026</td><td>Maintenance payout</td><td>$600</td><td><span class="badge badge-green">Paid</span></td></tr>
+              <tr><td><span class="unit-link" onclick="openJobDetail('7')">#7</span></td><td>Dec 30, 2025</td><td>Maintenance payout</td><td>$900</td><td><span class="badge badge-green">Paid</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PROFILE PAGE -->
+      <div class="page" id="page-profile">
+        <div class="page-header"><div><div class="page-title">Profile Settings</div><div class="page-sub">Your company and contact information</div></div></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Company Details</span></div>
+            <div style="padding:16px">
+              <div class="form-row"><label>Company Name</label><input value="Mike's Plumbing"/></div>
+              <div class="form-row"><label>Contact Person</label><input value="Mike Johnson"/></div>
+              <div class="form-row-2">
+                <div><label>Email</label><input value="mike@plumbing.com"/></div>
+                <div><label>Phone</label><input value="(401) 555-0100"/></div>
+              </div>
+              <div class="form-row"><label>Trade / Expertise</label><input value="Plumbing, General Repairs"/></div>
+              <div class="form-row"><label>Service Areas</label><input value="Providence, Cranston, Warwick"/></div>
+              <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">
+                <button class="btn btn-ghost">Cancel</button>
+                <button class="btn btn-primary">Save</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Payment Details</span></div>
+            <div style="padding:16px">
+              <div class="form-row"><label>Bank Account</label><input value="Bank •••• 9876" disabled/></div>
+              <div class="form-row"><label>Payout Frequency</label><select><option selected>Bi-weekly</option><option>Monthly</option><option>On completion</option></select></div>
+              <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">
+                <button class="btn btn-ghost" onclick="openModal('manage-payout-method')">Change</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Simple page navigation for vendor portal
+const pages = {
+  dashboard:{title:'Dashboard',btn:null},
+  jobs:{title:'Jobs',btn:null},
+  payments:{title:'Payments',btn:null},
+  profile:{title:'Profile Settings',btn:null}
+};
+
+function nav(id){
+  document.querySelectorAll('.nav-item').forEach(el=>{
+    el.classList.toggle('active', el.dataset.page===id);
+  });
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.getElementById('topbar-title').textContent=pages[id].title;
+  // hide notification panel when navigating
+  closeNotif();
+}
+
+function toggleNotif(){
+  document.getElementById('notif-panel').classList.toggle('open');
+  document.getElementById('notif-dot').style.display='none';
+}
+
+// Placeholder export function for vendor payment history
+function exportPayments(){
+  alert('Exporting payment history...');
+}
+
+function closeNotif(){
+  document.getElementById('notif-panel').classList.remove('open');
+}
+
+// dummy functions for modals / job detail
+function openModal(type,id){ alert(type+' modal coming soon'); }
+function openJobDetail(id){ alert('Job '+id+' details would open here'); }
+
+function toggleLogout(){
+  document.getElementById('logout-popup').classList.toggle('open');
+}
+document.addEventListener('click',e=>{
+  const lp=document.getElementById('logout-popup');
+  if(!e.target.closest('.sidebar-bottom')&&lp.classList.contains('open')) lp.classList.remove('open');
+});
+
+// initialize
+document.addEventListener('DOMContentLoaded',()=>{
+  nav('dashboard');
+});
+</script>
+</body>
+</html>
